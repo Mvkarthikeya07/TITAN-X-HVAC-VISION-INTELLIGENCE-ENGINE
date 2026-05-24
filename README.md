@@ -490,6 +490,8 @@ This project establishes the engineering foundation. The following directions ex
 > *A screen-recorded walkthrough of the full pipeline is available in `docs/demo/`*
 > *GIF preview embedded below — refer to the Screenshot Session for the complete step-by-step visual documentation*
 
+Video: https://drive.google.com/file/d/103P6wdgzBrqgnGqKLMi8x5c4k-WNWnv1/view?usp=drivesdk
+
 ```
 Upload PDF  →  AI Analysis (~6s)  →  Results Dashboard  →  Export Excel
      ↓               ↓                      ↓                    ↓
