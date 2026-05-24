@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HVAC AI Estimator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020c07;
+            --surface: #0a1a0f;
+            --surface2: #0f2318;
+            --green: #00ff6a;
+            --green-dim: #00c952;
+            --green-glow: rgba(0,255,106,0.15);
+            --green-border: rgba(0,255,106,0.25);
+            --text: #e8f5ed;
+            --muted: #4a7a5a;
+            --accent: #00e5ff;
+            --error: #ff4d6d;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Syne', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,255,106,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,106,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: -20%;
+            left: -10%;
+            width: 70%;
+            height: 70%;
+            background: radial-gradient(ellipse, rgba(0,255,106,0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .shell {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            min-height: 100vh;
+        }
+
+        /* ─── SIDEBAR ─── */
+        .sidebar {
+            border-right: 1px solid var(--green-border);
+            padding: 40px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            background: rgba(10,26,15,0.6);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .logo-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--green);
+            letter-spacing: -1px;
+            text-shadow: 0 0 30px rgba(0,255,106,0.4);
+            line-height: 1;
+        }
+
+        .logo span { color: var(--text); }
+
+        .nav { display: flex; flex-direction: column; gap: 6px; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+        }
+
+        .nav-item.active {
+            background: var(--green-glow);
+            color: var(--green);
+            border: 1px solid var(--green-border);
+        }
+
+        .nav-item:hover:not(.active) {
+            background: rgba(255,255,255,0.03);
+            color: var(--text);
+        }
+
+        .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+
+        .sidebar-footer { margin-top: auto; }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(0,255,106,0.06);
+            border: 1px solid var(--green-border);
+            border-radius: 100px;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: var(--green-dim);
+            letter-spacing: 1px;
+        }
+
+        .pulse-dot {
+            width: 7px; height: 7px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 0 8px var(--green);
+            flex-shrink: 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* ─── MAIN ─── */
+        .main {
+            padding: 60px 70px;
+            display: flex;
+            flex-direction: column;
+            gap: 48px;
+            max-width: 900px;
+        }
+
+        .header { animation: fadeUp 0.6s ease both; }
+
+        .header-tag {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--green);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-tag::before {
+            content: '';
+            width: 24px;
+            height: 1px;
+            background: var(--green);
+        }
+
+        h1 {
+            font-size: clamp(32px, 4vw, 52px);
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1.05;
+            color: var(--text);
+        }
+
+        h1 em { font-style: normal; color: var(--green); }
+
+        .subtitle {
+            margin-top: 14px;
+            font-size: 15px;
+            color: var(--muted);
+            line-height: 1.6;
+            font-weight: 400;
+            max-width: 520px;
+        }
+
+        /* ─── ERROR BANNER ─── */
+        .error-banner {
+            background: rgba(255,77,109,0.1);
+            border: 1px solid rgba(255,77,109,0.35);
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: var(--error);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: fadeUp 0.4s ease;
+        }
+
+        /* ─── UPLOAD CARD ─── */
+        .upload-card {
+            background: var(--surface);
+            border: 1px solid var(--green-border);
+            border-radius: 20px;
+            padding: 44px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp 0.6s 0.15s ease both;
+        }
+
+        .upload-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 180px; height: 180px;
+            background: radial-gradient(ellipse at top right, rgba(0,255,106,0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* ─── FILE TYPE TABS ─── */
+        .type-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 28px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 6px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .type-tab {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 7px;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--muted);
+            user-select: none;
+        }
+
+        .type-tab.active {
+            background: var(--green-glow);
+            color: var(--green);
+            border: 1px solid var(--green-border);
+        }
+
+        /* ─── DROP ZONE ─── */
+        .drop-zone {
+            border: 2px dashed var(--green-border);
+            border-radius: 14px;
+            padding: 56px 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: var(--green);
+            background: rgba(0,255,106,0.04);
+        }
+
+        .drop-icon-wrap {
+            width: 64px; height: 64px;
+            background: var(--green-glow);
+            border: 1px solid var(--green-border);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .drop-icon-wrap svg { width: 28px; height: 28px; stroke: var(--green); }
+
+        .drop-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .drop-sub {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .drop-sub span { color: var(--green-dim); cursor: pointer; }
+
+        /* ─── ACCEPTED TYPES BADGE ─── */
+        .accepted-types {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 16px;
+        }
+
+        .type-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(0,255,106,0.2);
+            color: var(--muted);
+            background: rgba(0,0,0,0.2);
+            letter-spacing: 1px;
+        }
+
+        /* ─── FILE PREVIEW ─── */
+        .file-preview {
+            display: none;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: rgba(0,255,106,0.05);
+            border: 1px solid var(--green-border);
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .file-preview.show { display: flex; }
+
+        .file-icon {
+            width: 44px; height: 44px;
+            background: rgba(0,255,106,0.1);
+            border: 1px solid var(--green-border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .file-icon svg { width: 20px; height: 20px; stroke: var(--green); }
+
+        .file-info { flex: 1; min-width: 0; }
+
+        .file-name {
+            font-weight: 700;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-size {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .file-remove {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            color: var(--muted);
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .file-remove:hover { color: var(--error); }
+        .file-remove svg { width: 18px; height: 18px; stroke: currentColor; }
+
+        /* ─── SUBMIT ─── */
+        .submit-btn {
+            width: 100%;
+            margin-top: 24px;
+            padding: 18px 32px;
+            background: var(--green);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.3px;
+        }
+
+        .submit-btn:hover {
+            background: #00ff8a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0,255,106,0.3);
+        }
+
+        .submit-btn-inner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn svg { width: 20px; height: 20px; stroke: #000; }
+
+        /* ─── INFO GRID ─── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            animation: fadeUp 0.6s 0.3s ease both;
+        }
+
+        .info-card {
+            background: var(--surface);
+            border: 1px solid var(--green-border);
+            border-radius: 14px;
+            padding: 24px 20px;
+            text-align: center;
+        }
+
+        .info-num {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--green);
+            letter-spacing: -1px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 6px;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        /* ─── LOADER ─── */
+        .loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2,12,7,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+            gap: 24px;
+            backdrop-filter: blur(8px);
+        }
+
+        .loader-overlay.active { display: flex; }
+
+        .loader-ring {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            border: 3px solid rgba(0,255,106,0.1);
+            border-top-color: var(--green);
+            animation: spin 0.8s linear infinite;
+            box-shadow: 0 0 30px rgba(0,255,106,0.2);
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loader-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: var(--green);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .loader-sub { font-size: 13px; color: var(--muted); margin-top: -16px; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #file-input { display: none; }
+    </style>
+</head>
+<body>
+
+<!-- Loader -->
+<div class="loader-overlay" id="loader">
+    <div class="loader-ring"></div>
+    <div class="loader-text">Analyzing</div>
+    <div class="loader-sub">Processing blueprint with AI engine...</div>
+</div>
+
+<div class="shell">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div>
+            <div class="logo-label">Platform</div>
+            <div class="logo">HVAC<span>ai</span></div>
+        </div>
+
+        <nav class="nav">
+            <a href="/" class="nav-item active">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                </svg>
+                Upload
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="status-pill">
+                <div class="pulse-dot"></div>
+                AI Engine Ready
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+
+        <div class="header">
+            <div class="header-tag">Blueprint Analysis</div>
+            <h1>Upload your <em>HVAC</em><br>Blueprint</h1>
+            <p class="subtitle">Drop a PDF or image and let the AI engine detect all HVAC components, map connections, and generate an accurate cost estimate in seconds.</p>
+        </div>
+
+        {% if error %}
+        <div class="error-banner">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <!-- Upload Card -->
+        <div class="upload-card">
+            <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
+                <input type="file" id="file-input" name="file"
+                    accept=".pdf,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp" required>
+
+                <!-- File Type Tabs (visual only) -->
+                <div class="type-tabs">
+                    <div class="type-tab active" id="tab-pdf" onclick="switchTab('pdf')">
+                        📄 PDF Blueprint
+                    </div>
+                    <div class="type-tab" id="tab-img" onclick="switchTab('img')">
+                        🖼 Image File
+                    </div>
+                </div>
+
+                <div class="drop-zone" id="drop-zone">
+                    <div class="drop-icon-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                        </svg>
+                    </div>
+                    <div class="drop-title" id="drop-title">Drop blueprint PDF here</div>
+                    <div class="drop-sub" id="drop-sub">or <span id="browse-link">click to browse</span></div>
+                    <div class="accepted-types" id="accepted-types">
+                        <span class="type-badge">PDF</span>
+                        <span class="type-badge">PNG</span>
+                        <span class="type-badge">JPG</span>
+                        <span class="type-badge">TIFF</span>
+                        <span class="type-badge">BMP</span>
+                        <span class="type-badge">WEBP</span>
+                    </div>
+                </div>
+
+                <div class="file-preview" id="file-preview">
+                    <div class="file-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                        </svg>
+                    </div>
+                    <div class="file-info">
+                        <div class="file-name" id="file-name">file.pdf</div>
+                        <div class="file-size" id="file-size">—</div>
+                    </div>
+                    <button class="file-remove" type="button" id="file-remove">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <button class="submit-btn" type="submit">
+                    <div class="submit-btn-inner">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        Run AI Analysis
+                    </div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-num">PDF+IMG</div>
+                <div class="info-label">File Support</div>
+            </div>
+            <div class="info-card">
+                <div class="info-num">&lt;30s</div>
+                <div class="info-label">Processing Time</div>
+            </div>
+            <div class="info-card">
+                <div class="info-num">12+</div>
+                <div class="info-label">Component Types</div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    const dropZone    = document.getElementById('drop-zone');
+    const fileInput   = document.getElementById('file-input');
+    const filePreview = document.getElementById('file-preview');
+    const fileName    = document.getElementById('file-name');
+    const fileSize    = document.getElementById('file-size');
+    const fileRemove  = document.getElementById('file-remove');
+    const form        = document.getElementById('upload-form');
+    const loader      = document.getElementById('loader');
+    const dropTitle   = document.getElementById('drop-title');
+    const dropSub     = document.getElementById('drop-sub');
+    const browseLink  = document.getElementById('browse-link');
+
+    let currentMode = 'pdf';
+
+    function switchTab(mode) {
+        currentMode = mode;
+        document.getElementById('tab-pdf').classList.toggle('active', mode === 'pdf');
+        document.getElementById('tab-img').classList.toggle('active', mode === 'img');
+        if (mode === 'pdf') {
+            dropTitle.textContent = 'Drop blueprint PDF here';
+            fileInput.accept = '.pdf';
+        } else {
+            dropTitle.textContent = 'Drop image file here';
+            fileInput.accept = '.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp';
+        }
+    }
+
+    function formatSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    function showFile(file) {
+        fileName.textContent = file.name;
+        fileSize.textContent = formatSize(file.size);
+        filePreview.classList.add('show');
+        // Auto-switch tab to match file
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext !== 'pdf') switchTab('img');
+        else switchTab('pdf');
+    }
+
+    function clearFile() {
+        fileInput.value = '';
+        filePreview.classList.remove('show');
+    }
+
+    browseLink.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('click', (e) => {
+        if (!e.target.closest('#file-preview')) fileInput.click();
+    });
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+            showFile(file);
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) showFile(fileInput.files[0]);
+    });
+
+    fileRemove.addEventListener('click', (e) => { e.stopPropagation(); clearFile(); });
+
+    form.addEventListener('submit', (e) => {
+        if (!fileInput.files[0]) { e.preventDefault(); return; }
+        loader.classList.add('active');
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HVAC AI — Analysis Results</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #020c07;
+            --surface: #0a1a0f;
+            --surface2: #0f2318;
+            --green: #00ff6a;
+            --green-dim: #00c952;
+            --green-glow: rgba(0,255,106,0.15);
+            --green-border: rgba(0,255,106,0.25);
+            --text: #e8f5ed;
+            --muted: #4a7a5a;
+            --accent: #00e5ff;
+            --gold: #ffd166;
+            --red: #ff4d6d;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Syne', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,255,106,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,106,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .shell {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            min-height: 100vh;
+        }
+
+        /* ─── SIDEBAR ─── */
+        .sidebar {
+            border-right: 1px solid var(--green-border);
+            padding: 40px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            background: rgba(10,26,15,0.6);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .logo-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--green);
+            letter-spacing: -1px;
+            text-shadow: 0 0 30px rgba(0,255,106,0.4);
+            line-height: 1;
+        }
+
+        .logo span { color: var(--text); }
+
+        .nav { display: flex; flex-direction: column; gap: 6px; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+        }
+
+        .nav-item.active {
+            background: var(--green-glow);
+            color: var(--green);
+            border: 1px solid var(--green-border);
+        }
+
+        .nav-item:hover:not(.active) {
+            background: rgba(255,255,255,0.03);
+            color: var(--text);
+        }
+
+        .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+
+        .sidebar-footer { margin-top: auto; }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(0,255,106,0.06);
+            border: 1px solid var(--green-border);
+            border-radius: 100px;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: var(--green-dim);
+            letter-spacing: 1px;
+        }
+
+        .pulse-dot {
+            width: 7px; height: 7px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 0 8px var(--green);
+            flex-shrink: 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* ─── MAIN ─── */
+        .main {
+            padding: 56px 70px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            overflow-x: hidden;
+        }
+
+        /* ─── BREADCRUMB ─── */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            color: var(--muted);
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .breadcrumb a { color: var(--green-dim); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--green); }
+        .bc-sep { color: rgba(255,255,255,0.1); }
+
+        /* ─── PAGE HEADER ─── */
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            animation: fadeUp 0.5s 0.05s ease both;
+        }
+
+        .header-tag {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--green);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-tag::before { content: ''; width: 24px; height: 1px; background: var(--green); }
+
+        h1 {
+            font-size: clamp(28px, 3.5vw, 44px);
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1.05;
+        }
+
+        .timestamp {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+        .page-header-actions {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn svg { width: 16px; height: 16px; stroke: currentColor; }
+
+        .btn-primary {
+            background: var(--green);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #00ff8a;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0,255,106,0.25);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--green);
+            border: 1px solid var(--green-border);
+        }
+
+        .btn-outline:hover {
+            background: var(--green-glow);
+        }
+
+        /* ─── COST HERO ─── */
+        .cost-hero {
+            background: linear-gradient(135deg, var(--surface) 0%, rgba(0,255,106,0.05) 100%);
+            border: 1px solid var(--green-border);
+            border-radius: 20px;
+            padding: 40px 48px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp 0.6s 0.1s ease both;
+        }
+
+        .cost-hero::before {
+            content: '';
+            position: absolute;
+            top: -30px; right: -30px;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, rgba(0,255,106,0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cost-hero-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+        }
+
+        .cost-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .cost-amount {
+            font-size: clamp(36px, 5vw, 62px);
+            font-weight: 800;
+            color: var(--green);
+            letter-spacing: -3px;
+            line-height: 1;
+            display: flex;
+            align-items: flex-start;
+            gap: 4px;
+            text-shadow: 0 0 40px rgba(0,255,106,0.3);
+        }
+
+        .currency {
+            font-size: 0.45em;
+            margin-top: 0.25em;
+            opacity: 0.7;
+        }
+
+        #cost-display { font-variant-numeric: tabular-nums; }
+
+        .cost-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 16px;
+        }
+
+        .cost-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--muted);
+            font-family: 'Space Mono', monospace;
+        }
+
+        .dot {
+            width: 5px; height: 5px;
+            background: var(--green-dim);
+            border-radius: 50%;
+        }
+
+        /* Sub-cost boxes */
+        .cost-breakdown-pills {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 200px;
+        }
+
+        .cost-pill {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 12px 16px;
+        }
+
+        .cost-pill-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .cost-pill-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 4px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ─── KPI STRIP ─── */
+        .kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            animation: fadeUp 0.6s 0.15s ease both;
+        }
+
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--green-border);
+            border-radius: 14px;
+            padding: 22px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--green);
+            opacity: 0.3;
+        }
+
+        .kpi-num {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--green);
+            letter-spacing: -1px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .kpi-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* ─── CHARTS ROW ─── */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            animation: fadeUp 0.6s 0.2s ease both;
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--green-border);
+            border-radius: 16px;
+            padding: 28px;
+        }
+
+        .chart-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 220px;
+        }
+
+        /* ─── STATS GRID ─── */
+        .section-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 14px;
+            animation: fadeUp 0.6s 0.25s ease both;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--green-border);
+            border-radius: 14px;
+            padding: 20px 16px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--green);
+            transform: translateY(-2px);
+        }
+
+        .stat-count {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--green);
+            letter-spacing: -2px;
+        }
+
+        .stat-name {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+            text-transform: capitalize;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-bar {
+            margin-top: 12px;
+            height: 3px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            background: var(--green);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        /* ─── GALLERY ─── */
+        .gallery-section { animation: fadeUp 0.6s 0.3s ease both; }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 14px;
+            margin-top: 0;
+        }
+
+        .gallery-item {
+            position: relative;
+            aspect-ratio: 4/3;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--green-border);
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .gallery-item:hover { border-color: var(--green); }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-item-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: flex-end;
+            padding: 14px;
+        }
+
+        .gallery-item:hover .gallery-item-overlay { opacity: 1; }
+
+        .gallery-item-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: var(--green);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* ─── TABLE ─── */
+        .table-section { animation: fadeUp 0.6s 0.35s ease both; }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table thead {
+            background: var(--surface2);
+        }
+
+        .data-table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            border-bottom: 1px solid var(--green-border);
+        }
+
+        .data-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .data-table tr:hover td { background: rgba(0,255,106,0.02); }
+
+        .data-table td.component { font-weight: 600; text-transform: capitalize; }
+
+        .data-table td.total { color: var(--green); font-weight: 700; }
+
+        .data-table tfoot td {
+            padding: 16px;
+            font-weight: 700;
+            border-top: 1px solid var(--green-border);
+        }
+
+        .total-row td { color: var(--gold) !important; font-size: 15px; }
+
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 100px;
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            font-weight: 700;
+            background: rgba(0,255,106,0.1);
+            color: var(--green-dim);
+            border: 1px solid rgba(0,255,106,0.2);
+            letter-spacing: 0.5px;
+        }
+
+        /* ─── LIGHTBOX ─── */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9000;
+            backdrop-filter: blur(8px);
+        }
+
+        .lightbox.open { display: flex; }
+
+        .lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 8px;
+            border: 1px solid var(--green-border);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px; right: 28px;
+            font-size: 32px;
+            color: var(--muted);
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .lightbox-close:hover { color: var(--green); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+    <span class="lightbox-close" id="lb-close">×</span>
+    <img id="lb-img" src="" alt="">
+</div>
+
+<div class="shell">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div>
+            <div class="logo-label">Platform</div>
+            <div class="logo">HVAC<span>ai</span></div>
+        </div>
+
+        <nav class="nav">
+            <a href="/" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                </svg>
+                Upload
+            </a>
+            <a href="#" class="nav-item active">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                Results
+            </a>
+            <a href="/download" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                </svg>
+                Export Report
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="status-pill">
+                <div class="pulse-dot"></div>
+                Analysis Complete
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="/">Upload</a>
+            <span class="bc-sep">/</span>
+            <span>Analysis Results</span>
+            {% if filename %}
+            <span class="bc-sep">/</span>
+            <span>{{ filename }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-header-left">
+                <div class="header-tag">AI Detection Complete</div>
+                <h1>Analysis Results</h1>
+                <div class="timestamp">{{ timestamp or "Just now" }} · {{ pages or 1 }} page(s) processed</div>
+            </div>
+            <div class="page-header-actions">
+                <a class="btn btn-outline" href="/">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                    </svg>
+                    New Upload
+                </a>
+                <a class="btn btn-primary" href="/download">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                    </svg>
+                    Export Excel
+                </a>
+            </div>
+        </div>
+
+        <!-- Cost Hero -->
+        <div class="cost-hero">
+            <div class="cost-hero-inner">
+                <div>
+                    <div class="cost-label">Estimated Total Cost</div>
+                    <div class="cost-amount">
+                        <span class="currency">₹</span>
+                        <span id="cost-display">0</span>
+                    </div>
+                    <div class="cost-meta">
+                        <div class="cost-meta-item"><div class="dot"></div>Materials + Labour + Overhead</div>
+                        <div class="cost-meta-item"><div class="dot"></div>GST applicable separately</div>
+                    </div>
+                </div>
+                <div class="cost-breakdown-pills">
+                    <div class="cost-pill">
+                        <div class="cost-pill-label">Materials</div>
+                        <div class="cost-pill-value">₹ {{ "{:,}".format(cost_data.material_total) }}</div>
+                    </div>
+                    <div class="cost-pill">
+                        <div class="cost-pill-label">Labour (20%)</div>
+                        <div class="cost-pill-value">₹ {{ "{:,}".format(cost_data.labour) }}</div>
+                    </div>
+                    <div class="cost-pill">
+                        <div class="cost-pill-label">Overhead (10%)</div>
+                        <div class="cost-pill-value">₹ {{ "{:,}".format(cost_data.overhead) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Strip -->
+        <div class="kpi-strip">
+            <div class="kpi-card">
+                <div class="kpi-num">{{ counts|length }}</div>
+                <div class="kpi-label">Component Types</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-num">{{ counts.values()|sum }}</div>
+                <div class="kpi-label">Total Items</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-num">{{ pages or 1 }}</div>
+                <div class="kpi-label">Pages Scanned</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-num">{{ images|length }}</div>
+                <div class="kpi-label">Output Images</div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="chart-title">Component Distribution</div>
+                <div class="chart-wrap">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Cost Breakdown</div>
+                <div class="chart-wrap">
+                    <canvas id="donutChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Component Stats -->
+        <div>
+            <div class="section-label">Detected Components</div>
+            <div class="stats-grid" id="stats-grid">
+                {% for k, v in counts.items() %}
+                <div class="stat-card">
+                    <div class="stat-count">{{ v }}</div>
+                    <div class="stat-name">{{ k }}</div>
+                    <div class="stat-bar">
+                        <div class="stat-bar-fill" data-val="{{ [v * 8, 100]|min }}"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Detected Images Gallery -->
+        {% if images %}
+        <div class="gallery-section">
+            <div class="section-label">Detected Regions ({{ images|length }} images)</div>
+            <div class="gallery" id="gallery">
+                {% for img in images %}
+                <div class="gallery-item" onclick="openLightbox('/static/{{ img }}')">
+                    <img src="/static/{{ img }}" alt="Detected components - page {{ loop.index }}" loading="lazy">
+                    <div class="gallery-item-overlay">
+                        <div class="gallery-item-label">Page {{ loop.index }} — Click to expand</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Cost Breakdown Table -->
+        <div class="table-section">
+            <div class="section-label">Cost Breakdown</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Qty</th>
+                        <th>Unit Rate (₹)</th>
+                        <th>Line Total (₹)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cost_data.breakdown %}
+                    <tr>
+                        <td class="component">{{ item.component }}</td>
+                        <td>{{ item.qty }}</td>
+                        <td>{{ "{:,}".format(item.unit_rate) }}</td>
+                        <td class="total">{{ "{:,}".format(item.line_total) }}</td>
+                        <td><span class="tag">DETECTED</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Materials Subtotal</td>
+                        <td>₹ {{ "{:,}".format(cost_data.material_total) }}</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">Labour (20%)</td>
+                        <td>₹ {{ "{:,}".format(cost_data.labour) }}</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">Overhead (10%)</td>
+                        <td>₹ {{ "{:,}".format(cost_data.overhead) }}</td>
+                        <td></td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3"><strong>GRAND TOTAL</strong></td>
+                        <td><strong>₹ {{ "{:,}".format(cost_data.total_cost) }}</strong></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    /* ─── DATA from Flask ─── */
+    const counts    = {{ counts | tojson }};
+    const costData  = {{ cost_data | tojson }};
+    const totalCost = {{ cost or 0 }};
+
+    /* ─── ANIMATED COST COUNTER ─── */
+    function animateCounter(el, target, duration = 1500) {
+        const start  = performance.now();
+        const fmt    = (n) => Math.round(n).toLocaleString('en-IN');
+        function step(now) {
+            const elapsed  = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const ease     = 1 - Math.pow(1 - progress, 4);
+            el.textContent = fmt(ease * target);
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+
+    window.addEventListener('load', () => {
+        const costEl = document.getElementById('cost-display');
+        animateCounter(costEl, totalCost);
+    });
+
+    /* ─── STAT BAR ANIMATIONS ─── */
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            document.querySelectorAll('.stat-bar-fill').forEach(bar => {
+                bar.style.width = (bar.dataset.val || 50) + '%';
+            });
+        }, 400);
+    });
+
+    /* ─── BAR CHART ─── */
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(counts).map(k => k.charAt(0).toUpperCase() + k.slice(1)),
+            datasets: [{
+                label: 'Count',
+                data: Object.values(counts),
+                backgroundColor: 'rgba(0, 255, 106, 0.3)',
+                borderColor: '#00ff6a',
+                borderWidth: 1.5,
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.04)' },
+                    ticks: { color: '#4a7a5a', font: { family: 'Space Mono', size: 10 } }
+                },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.04)' },
+                    ticks: { color: '#4a7a5a', font: { family: 'Space Mono', size: 10 }, stepSize: 1 },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    /* ─── DONUT CHART ─── */
+    const donutCtx = document.getElementById('donutChart').getContext('2d');
+    const palette  = ['#00ff6a', '#00c952', '#00e5ff', '#ffd166', '#ff9f43', '#ff4d6d', '#a29bfe', '#fd79a8', '#00b894', '#fdcb6e', '#6c5ce7', '#e17055'];
+
+    const donutLabels = (costData.breakdown || []).map(i => i.component);
+    const donutValues = (costData.breakdown || []).map(i => i.line_total);
+
+    new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+            labels: donutLabels,
+            datasets: [{
+                data: donutValues,
+                backgroundColor: palette.slice(0, donutLabels.length),
+                borderColor: '#020c07',
+                borderWidth: 2,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'right',
+                    labels: {
+                        color: '#4a7a5a',
+                        font: { family: 'Space Mono', size: 9 },
+                        padding: 12,
+                        boxWidth: 10,
+                        boxHeight: 10
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => ` ₹ ${ctx.raw.toLocaleString('en-IN')}`
+                    }
+                }
+            }
+        }
+    });
+
+    /* ─── LIGHTBOX ─── */
+    const lightbox = document.getElementById('lightbox');
+    const lbImg    = document.getElementById('lb-img');
+
+    function openLightbox(src) {
+        lbImg.src = src;
+        lightbox.classList.add('open');
+    }
+
+    document.getElementById('lb-close').addEventListener('click', () => lightbox.classList.remove('open'));
+    lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.remove('open'); });
+</script>
+</body>
+</html>
