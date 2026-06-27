@@ -15,7 +15,7 @@
 ---
 
 ## ◈ TABLE OF CONTENTS
-```
+
 - [◈ System Overview](#-system-overview)
 - [◈ Engineer Credentials — Certified by InTakeoff](#-engineer-credentials--certified-by-intakeoff)
 - [◈ What This System Validates](#-what-this-system-validates)
@@ -40,8 +40,6 @@
 - [◈ Future Research Directions](#-future-research-directions)
 - [◈ Demo](#-demo)
 
----
-
 ## ◈ SYSTEM OVERVIEW
 
 **TITAN-X** is not a demo. It is a production-style blueprint intelligence stack purpose-built to validate, benchmark, and operationalize a trained YOLO-based HVAC detection model inside a complete real-world estimation pipeline.
@@ -53,7 +51,6 @@ Upload a mechanical drawing — PDF or raster image. Within seconds, the AI engi
 This was engineered for one objective: to answer the hardest question in applied AI —
 **does the model work when it matters, at scale, in a real system?**
 
----
 
 ## ◈ ENGINEER CREDENTIALS — CERTIFIED BY INTAKEOFF
 
@@ -66,7 +63,7 @@ This was engineered for one objective: to answer the hardest question in applied
 ║  URN        : UDYAM-TN-34-0094789                                       ║
 ║  STATUS     : COMPLETED · CERTIFIED · PRODUCTION-VALIDATED              ║
 ╚══════════════════════════════════════════════════════════════════════════╝
-
+```
 
 TITAN-X was not built as a classroom exercise, a weekend hackathon hack, or a tutorial clone. It was engineered under a **formal, founder-reviewed Machine Learning Internship at InTakeoff.ai** — a remote, production-track engagement in which the mandate was explicit: build, train, and improve real-world machine learning models inside a live AI product, and ship work that directly impacts the product the founding team is building.
 
