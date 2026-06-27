@@ -14,6 +14,34 @@
 
 ---
 
+## ◈ TABLE OF CONTENTS
+```
+- [◈ System Overview](#-system-overview)
+- [◈ Engineer Credentials — Certified by InTakeoff](#-engineer-credentials--certified-by-intakeoff)
+- [◈ What This System Validates](#-what-this-system-validates)
+- [◈ Performance Metrics](#-performance-metrics)
+- [◈ Why This Matters](#-why-this-matters)
+- [◈ Live Output — Analysis Run](#-live-output--analysis-run-2026-05-24--160317)
+- [◈ Core Capabilities](#-core-capabilities)
+- [◈ System Architecture](#-system-architecture)
+- [◈ Tech Stack](#-tech-stack)
+- [◈ Repository Structure](#-repository-structure)
+- [◈ Quick Start](#-quick-start)
+- [◈ HTTP API](#-http-api)
+- [◈ Output Artifacts](#-output-artifacts)
+- [◈ Cost Model](#-cost-model)
+- [◈ Inference Configuration](#-inference-configuration)
+- [◈ Validation Notes](#-validation-notes)
+- [◈ Production Hardening Checklist](#-production-hardening-checklist)
+- [◈ Troubleshooting](#-troubleshooting)
+- [◈ Engineering Domains Demonstrated](#-engineering-domains-demonstrated)
+- [◈ License](#-license)
+- [◈ Screenshot Session](#-screenshot-session)
+- [◈ Future Research Directions](#-future-research-directions)
+- [◈ Demo](#-demo)
+
+---
+
 ## ◈ SYSTEM OVERVIEW
 
 **TITAN-X** is not a demo. It is a production-style blueprint intelligence stack purpose-built to validate, benchmark, and operationalize a trained YOLO-based HVAC detection model inside a complete real-world estimation pipeline.
@@ -24,6 +52,51 @@ Upload a mechanical drawing — PDF or raster image. Within seconds, the AI engi
 
 This was engineered for one objective: to answer the hardest question in applied AI —
 **does the model work when it matters, at scale, in a real system?**
+
+---
+
+## ◈ ENGINEER CREDENTIALS — CERTIFIED BY INTAKEOFF
+
+```
+╔══════════════════════════════════════════════════════════════════════════╗
+║  INTERNSHIP : Machine Learning Intern · InTakeoff.ai                    ║
+║  ENGINEER   : M V Karthikeya                                            ║
+║  TENURE     : April 15, 2026  →  June 20, 2026                          ║
+║  CERTIFICATE: ITAI-INT-2026-008                                         ║
+║  URN        : UDYAM-TN-34-0094789                                       ║
+║  STATUS     : COMPLETED · CERTIFIED · PRODUCTION-VALIDATED              ║
+╚══════════════════════════════════════════════════════════════════════════╝
+```
+
+TITAN-X was not built as a classroom exercise, a weekend hackathon hack, or a tutorial clone. It was engineered under a **formal, founder-reviewed Machine Learning Internship at InTakeoff.ai** — a remote, production-track engagement in which the mandate was explicit: build, train, and improve real-world machine learning models inside a live AI product, and ship work that directly impacts the product the founding team is building.
+
+The original offer letter scoped the role around the exact disciplines this repository proves out end-to-end — dataset handling, model performance iteration, full ML workflow ownership, and direct collaboration with the founding team on a live system, not a sandboxed assignment. TITAN-X is the artifact of that mandate, carried from blueprint upload to inference to cost engine to analyst-ready export, with zero shortcuts taken at any layer of the stack.
+
+That work was reviewed, evaluated, and **certified complete by InTakeoff on June 20, 2026**, under Certificate No. **ITAI-INT-2026-008**, registered against URN **UDYAM-TN-34-0094789**. This is not self-declared competence. It is third-party, founder-signed validation that the engineering standard demonstrated in this repository was held to a production bar — and met it.
+
+**Internship-grade. Founder-reviewed. Production-track. Certified, not claimed.**
+
+### 🏢 Internship Context
+
+| Field | Detail |
+|---|---|
+| Organization | InTakeoff.ai |
+| Role | Machine Learning Intern |
+| Focus | Production-grade HVAC blueprint takeoff & YOLOv8 model validation |
+| Tenure | April 15, 2026 → June 20, 2026 |
+| Status | ✅ Completed |
+
+**Skills applied during this internship project:**
+- Dataset handling and annotation strategy for HVAC mechanical drawing components (diffusers, grilles, ducts, valves)
+- YOLOv8 inference tuning — confidence/IoU thresholds, input resolution, augmentation — for real-world blueprint detection
+- Multi-page PDF decomposition pipeline with primary/fallback conversion strategy (`pdf2image` → `PyMuPDF`)
+- Cross-page detection aggregation and class normalization to prevent duplicate component counts
+- Structured cost-estimation engine (Materials → Labour 20% → Overhead 10%) mapped directly to detected component classes
+- Backend ML integration using Flask — dual-output design (Excel export via `openpyxl` + JSON session API)
+- Fallback/demo-mode estimator design for zero-downtime inference when trained weights are unavailable
+- Clean, chart-driven results dashboard (Jinja2 + Chart.js) for real-time, analyst-readable interpretability
+
+🔗 **Certificate:** ITAI-INT-2026-008 · URN UDYAM-TN-34-0094789 — *[View on LinkedIn](https://www.linkedin.com/posts/m-v-karthikeya-b26a2131b_machinelearning-artificialintelligence-deeplearning-ugcPost-7476520197487497216-5cPp/?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFEhlw4BT-6V0rnLIZSzBIoK7YvV2QlbHLc)*
 
 ---
 
@@ -513,5 +586,6 @@ python app.py
 ║  TITAN-X HVAC VISION INTELLIGENCE ENGINE                                 ║
 ║  Built for the IntakeOff Internship Technical Assessment                 ║
 ║  Architecture validated · Pipeline operational · Model ready for scale   ║
+║  Certified Machine Learning Intern · InTakeoff.ai · ITAI-INT-2026-008   ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 ```
