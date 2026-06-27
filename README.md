@@ -66,7 +66,7 @@ This was engineered for one objective: to answer the hardest question in applied
 ║  URN        : UDYAM-TN-34-0094789                                       ║
 ║  STATUS     : COMPLETED · CERTIFIED · PRODUCTION-VALIDATED              ║
 ╚══════════════════════════════════════════════════════════════════════════╝
-```
+
 
 TITAN-X was not built as a classroom exercise, a weekend hackathon hack, or a tutorial clone. It was engineered under a **formal, founder-reviewed Machine Learning Internship at InTakeoff.ai** — a remote, production-track engagement in which the mandate was explicit: build, train, and improve real-world machine learning models inside a live AI product, and ship work that directly impacts the product the founding team is building.
 
