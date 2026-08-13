@@ -93,7 +93,7 @@ That work was reviewed, evaluated, and **certified complete by InTakeoff on June
 - Fallback/demo-mode estimator design for zero-downtime inference when trained weights are unavailable
 - Clean, chart-driven results dashboard (Jinja2 + Chart.js) for real-time, analyst-readable interpretability
 
-🔗 **Certificate:** ITAI-INT-2026-008 · URN UDYAM-TN-34-0094789 — *[View on LinkedIn](https://www.linkedin.com/posts/m-v-karthikeya-b26a2131b_machinelearning-artificialintelligence-deeplearning-ugcPost-7476520197487497216-5cPp/?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFEhlw4BT-6V0rnLIZSzBIoK7YvV2QlbHLc)*
+🔗 **Certificate:*[View on LinkedIn](https://www.linkedin.com/posts/m-v-karthikeya-b26a2131b_machinelearning-artificialintelligence-deeplearning-ugcPost-7476520197487497216-5cPp/?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFEhlw4BT-6V0rnLIZSzBIoK7YvV2QlbHLc)*
 
 ---
 
